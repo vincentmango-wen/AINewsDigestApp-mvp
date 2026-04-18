@@ -1,1 +1,12 @@
-.env.example
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Runtime artifacts
+logs/*.log
+data/*.db
