@@ -58,7 +58,7 @@ Gmail SMTP前提:
 {
   "success": true,
   "data": {},
-  "message": "success"
+  "message": "成功"
 }
 ```
 
@@ -135,10 +135,10 @@ Gmail SMTP前提:
   "success": true,
   "data": {
     "status": "ok",
-    "app_name": "field-news-digest-app",
+    "app_name": "FocusDigest",
     "timestamp": "2026-04-18T08:00:00+09:00"
   },
-  "message": "success"
+  "message": "成功"
 }
 ```
 
@@ -191,7 +191,7 @@ Gmail SMTP前提:
     "email_status": "success",
     "error_message": null
   },
-  "message": "digest job completed"
+  "message": "ダイジェスト処理が完了しました"
 }
 ```
 
@@ -220,7 +220,7 @@ Gmail SMTP前提:
 {
   "success": false,
   "error_code": "CONFIGURATION_ERROR",
-  "message": "required configuration is missing"
+  "message": "必須設定が不足しています"
 }
 ```
 
@@ -261,7 +261,7 @@ Gmail SMTP前提:
     "email_status": "success",
     "error_message": null
   },
-  "message": "success"
+  "message": "成功"
 }
 ```
 
@@ -279,7 +279,7 @@ Gmail SMTP前提:
 {
   "success": false,
   "error_code": "NOT_FOUND",
-  "message": "latest digest run was not found"
+  "message": "直近の実行履歴が存在しません"
 }
 ```
 
