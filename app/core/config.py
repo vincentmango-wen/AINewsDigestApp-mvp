@@ -20,9 +20,6 @@ DEFAULT_FETCH_LIMIT: Final = 20
 DEFAULT_SELECTION_LIMIT: Final = 5
 DEFAULT_SCHEDULE_HOUR: Final = 8
 DEFAULT_SCHEDULE_MINUTE: Final = 0
-DEFAULT_SMTP_HOST: Final = "smtp.gmail.com"
-DEFAULT_SMTP_PORT: Final = 587
-
 CATEGORY_PATTERN: Final = re.compile(
     r"^[A-Za-z0-9_\- \u3040-\u309F\u30A0-\u30FF\u3400-\u4DBF\u4E00-\u9FFF々ー]+$"
 )
@@ -58,32 +55,32 @@ def _read_env(name: str, default: str | None = None) -> str | None:
 def _require_env(name: str) -> str:
     value = _read_env(name)
     if value is None or value.strip() == "":
-        raise ConfigurationError(f"Missing required environment variable: {name}")
+        raise ConfigurationError(f"必須環境変数が未設定です: {name}")
     return value.strip()
 
 
 def _normalize_category(raw_value: str) -> str:
     if "\n" in raw_value or "\r" in raw_value:
-        raise ConfigurationError("CATEGORY must not contain newlines")
+        raise ConfigurationError("CATEGORY に改行は使用できません")
 
     normalized = re.sub(r" {2,}", " ", raw_value.strip())
     if normalized == "":
-        raise ConfigurationError("CATEGORY must not be empty")
+        raise ConfigurationError("CATEGORY は空文字にできません")
     if len(normalized) < 2 or len(normalized) > 50:
-        raise ConfigurationError("CATEGORY must be between 2 and 50 characters")
+        raise ConfigurationError("CATEGORY は2文字以上50文字以内で指定してください")
     if not CATEGORY_PATTERN.fullmatch(normalized):
         raise ConfigurationError(
-            "CATEGORY may contain only Japanese characters, ASCII letters, digits, spaces, '-' and '_'"
+            "CATEGORY には日本語、英字、数字、半角スペース、'-'、'_' のみ使用できます"
         )
     if re.fullmatch(r"[-_ ]+", normalized):
-        raise ConfigurationError("CATEGORY must contain letters or digits")
+        raise ConfigurationError("CATEGORY には文字または数字を含めてください")
     return normalized
 
 
 def _parse_email(name: str, raw_value: str) -> str:
     value = raw_value.strip()
     if not EMAIL_PATTERN.fullmatch(value):
-        raise ConfigurationError(f"{name} must be a valid email address")
+        raise ConfigurationError(f"{name} は有効なメールアドレス形式で指定してください")
     return value
 
 
@@ -91,12 +88,12 @@ def _parse_int(name: str, raw_value: str) -> int:
     try:
         return int(raw_value)
     except ValueError as exc:
-        raise ConfigurationError(f"{name} must be an integer") from exc
+        raise ConfigurationError(f"{name} は整数で指定してください") from exc
 
 
 def _ensure_positive(name: str, value: int) -> int:
     if value <= 0:
-        raise ConfigurationError(f"{name} must be greater than 0")
+        raise ConfigurationError(f"{name} は1以上で指定してください")
     return value
 
 
@@ -116,8 +113,8 @@ def get_settings() -> Settings:
     category = _normalize_category(_require_env("CATEGORY"))
     news_api_key = _require_env("NEWS_API_KEY")
     openai_api_key = _require_env("OPENAI_API_KEY")
-    smtp_host = _read_env("SMTP_HOST", DEFAULT_SMTP_HOST)
-    smtp_port = _parse_int("SMTP_PORT", _read_env("SMTP_PORT", str(DEFAULT_SMTP_PORT)))
+    smtp_host = _require_env("SMTP_HOST")
+    smtp_port = _parse_int("SMTP_PORT", _require_env("SMTP_PORT"))
     smtp_username = _parse_email("SMTP_USERNAME", _require_env("SMTP_USERNAME"))
     smtp_password = _require_env("SMTP_PASSWORD")
     mail_from_address = _parse_email(
@@ -141,11 +138,11 @@ def get_settings() -> Settings:
     )
 
     if schedule_hour < 0 or schedule_hour > 23:
-        raise ConfigurationError("SCHEDULE_HOUR must be between 0 and 23")
+        raise ConfigurationError("SCHEDULE_HOUR は0から23の範囲で指定してください")
     if schedule_minute < 0 or schedule_minute > 59:
-        raise ConfigurationError("SCHEDULE_MINUTE must be between 0 and 59")
+        raise ConfigurationError("SCHEDULE_MINUTE は0から59の範囲で指定してください")
     if smtp_port < 1 or smtp_port > 65535:
-        raise ConfigurationError("SMTP_PORT must be between 1 and 65535")
+        raise ConfigurationError("SMTP_PORT は1から65535の範囲で指定してください")
 
     db_path = _resolve_path(_read_env("DB_PATH"), DEFAULT_DB_PATH)
     log_path = _resolve_path(_read_env("LOG_PATH"), DEFAULT_LOG_PATH)
