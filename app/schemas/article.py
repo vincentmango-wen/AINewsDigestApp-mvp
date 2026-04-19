@@ -11,10 +11,10 @@ SummaryStatus = Literal["pending", "success", "failed"]
 
 @dataclass(frozen=True, slots=True)
 class ArticleFetchResult:
-    title: str
+    title: str | None
     description: str | None
-    url: str
-    published_at: str
+    url: str | None
+    published_at: str | None
     source_name: str | None
     category: str
 

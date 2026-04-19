@@ -29,7 +29,7 @@ EMAIL_PATTERN: Final = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 @dataclass(frozen=True, slots=True)
 class Settings:
     category: str
-    news_api_key: str
+    THE_NEWS_API_TOKEN: str
     openai_api_key: str
     smtp_host: str
     smtp_port: int
@@ -57,6 +57,15 @@ def _require_env(name: str) -> str:
     if value is None or value.strip() == "":
         raise ConfigurationError(f"必須環境変数が未設定です: {name}")
     return value.strip()
+
+
+def _require_any_env(*names: str) -> str:
+    for name in names:
+        value = _read_env(name)
+        if value is not None and value.strip() != "":
+            return value.strip()
+    joined_names = ", ".join(names)
+    raise ConfigurationError(f"必須環境変数が未設定です: {joined_names}")
 
 
 def _normalize_category(raw_value: str) -> str:
@@ -111,7 +120,7 @@ def get_settings() -> Settings:
     load_dotenv()
 
     category = _normalize_category(_require_env("CATEGORY"))
-    news_api_key = _require_env("NEWS_API_KEY")
+    THE_NEWS_API_TOKEN = _require_any_env("THE_NEWS_API_TOKEN", "THE_NEWS_API_TOKEN")
     openai_api_key = _require_env("OPENAI_API_KEY")
     smtp_host = _require_env("SMTP_HOST")
     smtp_port = _parse_int("SMTP_PORT", _require_env("SMTP_PORT"))
@@ -149,7 +158,7 @@ def get_settings() -> Settings:
 
     return Settings(
         category=category,
-        news_api_key=news_api_key,
+        THE_NEWS_API_TOKEN=THE_NEWS_API_TOKEN,
         openai_api_key=openai_api_key,
         smtp_host=smtp_host.strip(),
         smtp_port=smtp_port,

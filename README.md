@@ -5,7 +5,7 @@ FocusDigest は、指定した分野のニュースを取得し、AI で要約�
 
 ## 概要
 
-- ニュース取得元: NewsAPI
+- ニュース取得元: TheNewsAPI
 - 要約: OpenAI API
 - 保存先: SQLite
 - 通知: SMTP
@@ -56,7 +56,7 @@ FastAPI
   ├─ Services
   ├─ Repositories
   ├─ SQLite (data/app.db)
-  ├─ NewsAPI
+  ├─ TheNewsAPI
   ├─ OpenAI API
   └─ SMTP
 ```
@@ -100,7 +100,7 @@ requirements-dev.txt
 - FastAPI エンドポイント本体
 - 設定読み込み
 - DB 初期化
-- NewsAPI / OpenAI / SMTP クライアント
+- TheNewsAPI / OpenAI / SMTP クライアント
 - 業務サービス
 - スケジューラ実処理
 - テストコード
@@ -113,7 +113,7 @@ requirements-dev.txt
 
 ```env
 CATEGORY=AI
-NEWS_API_KEY=your_newsapi_key
+THE_NEWS_API_TOKEN=your_thenewsapi_token
 OPENAI_API_KEY=your_openai_api_key
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
@@ -125,6 +125,7 @@ SMTP_PASSWORD=your_app_password
 
 - `CATEGORY` は 2 文字以上 50 文字以内を想定
 - SMTP は Gmail 前提で設計されています
+- 互換性のため `NEWS_API_KEY` でも読み込めますが、新規設定は `THE_NEWS_API_TOKEN` を推奨します
 - 現在は `.env.example` が未作成です
 
 ## セットアップ
@@ -199,3 +200,4 @@ Docker 利用時は、設計上は以下のようなホストマウントを想�
 6. APScheduler 連携
 7. テスト追加
 8. Dockerfile と `.env.example` 追加
+
