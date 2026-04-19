@@ -27,7 +27,9 @@ SELECT
     summary,
     summary_status,
     fetched_at,
-    last_sent_run_id
+    last_sent_run_id,
+    created_at,
+    updated_at
 FROM articles
 """
 

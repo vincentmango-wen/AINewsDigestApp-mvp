@@ -21,6 +21,8 @@ class DigestRun:
     summarized_count: int
     email_status: EmailStatus
     error_message: str | None
+    created_at: str
+    updated_at: str
 
     @classmethod
     def from_row(cls, row: sqlite3.Row) -> "DigestRun":
@@ -34,4 +36,6 @@ class DigestRun:
             summarized_count=row["summarized_count"],
             email_status=row["email_status"],
             error_message=row["error_message"],
+            created_at=row["created_at"],
+            updated_at=row["updated_at"],
         )

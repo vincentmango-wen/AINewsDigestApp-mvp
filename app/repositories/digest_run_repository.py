@@ -20,7 +20,9 @@ SELECT
     selected_count,
     summarized_count,
     email_status,
-    error_message
+    error_message,
+    created_at,
+    updated_at
 FROM digest_runs
 """
 

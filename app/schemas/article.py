@@ -32,6 +32,8 @@ class Article:
     summary_status: SummaryStatus
     fetched_at: str
     last_sent_run_id: int | None
+    created_at: str
+    updated_at: str
 
     @classmethod
     def from_row(cls, row: sqlite3.Row) -> "Article":
@@ -47,6 +49,8 @@ class Article:
             summary_status=row["summary_status"],
             fetched_at=row["fetched_at"],
             last_sent_run_id=row["last_sent_run_id"],
+            created_at=row["created_at"],
+            updated_at=row["updated_at"],
         )
 
 
