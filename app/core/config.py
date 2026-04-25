@@ -120,7 +120,7 @@ def get_settings() -> Settings:
     load_dotenv()
 
     category = _normalize_category(_require_env("CATEGORY"))
-    THE_NEWS_API_TOKEN = _require_any_env("THE_NEWS_API_TOKEN", "THE_NEWS_API_TOKEN")
+    THE_NEWS_API_TOKEN = _require_any_env("THE_NEWS_API_TOKEN", "NEWS_API_KEY")
     openai_api_key = _require_env("OPENAI_API_KEY")
     smtp_host = _require_env("SMTP_HOST")
     smtp_port = _parse_int("SMTP_PORT", _require_env("SMTP_PORT"))
