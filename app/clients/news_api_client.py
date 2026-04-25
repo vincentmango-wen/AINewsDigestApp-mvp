@@ -13,6 +13,7 @@ from app.schemas.article import ArticleFetchResult
 
 NEWS_API_BASE_URL = "https://api.thenewsapi.com/v1/news/all"
 DEFAULT_TIMEOUT_SECONDS = 10.0
+FREE_PLAN_MAX_PAGE_SIZE = 3
 
 
 class NewsApiClient:
@@ -22,11 +23,13 @@ class NewsApiClient:
         api_key: str,
         base_url: str = NEWS_API_BASE_URL,
         timeout: float = DEFAULT_TIMEOUT_SECONDS,
+        max_page_size: int = FREE_PLAN_MAX_PAGE_SIZE,
         http_client: httpx.Client | None = None,
     ) -> None:
         self._api_key = api_key
         self._base_url = base_url
         self._timeout = timeout
+        self._max_page_size = max_page_size
         self._http_client = http_client
 
     def fetch_news(self, category: str, page_size: int) -> list[ArticleFetchResult]:
@@ -49,10 +52,11 @@ class NewsApiClient:
         ]
 
     def _request(self, *, category: str, page_size: int) -> dict[str, Any]:
+        effective_page_size = min(page_size, self._max_page_size)
         params = {
             "api_token": self._api_key,
             "search": category,
-            "limit": page_size,
+            "limit": effective_page_size,
         }
 
         if self._http_client is not None:
