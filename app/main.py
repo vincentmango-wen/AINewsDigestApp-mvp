@@ -9,6 +9,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from app.api.digest import router as digest_router
+from app.core.config import get_settings
 from app.api.health import router as health_router
 from app.core.exceptions import AppError
 from app.core.logging import configure_logging
@@ -26,7 +27,11 @@ APP_DESCRIPTION = (
 
 
 def build_digest_scheduler() -> DigestScheduler:
-    return DigestScheduler()
+    settings = get_settings()
+    return DigestScheduler(
+        schedule_hour=settings.schedule_hour,
+        schedule_minute=settings.schedule_minute,
+    )
 
 
 @asynccontextmanager
@@ -35,6 +40,7 @@ async def lifespan(app: FastAPI):
     initialize_database()
     logger.info("データベースを初期化しました", extra={"run_id": "-"})
     digest_scheduler = build_digest_scheduler()
+    digest_scheduler.register_jobs()
     digest_scheduler.start()
     app.state.digest_scheduler = digest_scheduler
 
