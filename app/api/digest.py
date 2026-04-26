@@ -10,7 +10,7 @@ from fastapi.responses import JSONResponse
 from app.clients.news_api_client import NewsApiClient
 from app.clients.openai_client import OpenAiClient
 from app.core.config import Settings, get_settings
-from app.core.exceptions import AppError
+from app.core.exceptions import AppError, NotFoundError
 from app.repositories.article_repository import ArticleRepository
 from app.repositories.digest_run_repository import DigestRunRepository
 from app.schemas.api import ApiErrorResponse, ApiSuccessResponse, DigestRunData
@@ -22,6 +22,10 @@ from app.services.run_history_service import RunHistoryService
 from app.services.summary_service import SummaryService
 
 router = APIRouter(prefix="/api/v1", tags=["digest"])
+
+
+def get_run_history_service() -> RunHistoryService:
+    return RunHistoryService(DigestRunRepository())
 
 
 def get_digest_service(settings: Settings = Depends(get_settings)) -> DigestService:
@@ -73,4 +77,18 @@ def run_digest_job(
     return ApiSuccessResponse[DigestRunData](
         data=DigestRunData.from_digest_run(result.run),
         message="ダイジェスト処理が完了しました",
+    )
+
+
+@router.get("/jobs/digest/runs/latest", response_model=ApiSuccessResponse[DigestRunData])
+def get_latest_digest_run(
+    run_history_service: RunHistoryService = Depends(get_run_history_service),
+) -> ApiSuccessResponse[DigestRunData]:
+    latest_run = run_history_service.get_latest_run()
+    if latest_run is None:
+        raise NotFoundError("直近の実行履歴が存在しません")
+
+    return ApiSuccessResponse[DigestRunData](
+        data=DigestRunData.from_digest_run(latest_run),
+        message="成功",
     )
