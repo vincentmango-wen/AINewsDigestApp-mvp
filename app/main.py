@@ -14,6 +14,7 @@ from app.core.exceptions import AppError
 from app.core.logging import configure_logging
 from app.db.connection import initialize_database
 from app.schemas.api import ApiErrorResponse
+from app.schedulers.digest_scheduler import DigestScheduler
 
 APP_TITLE = "FocusDigest"
 APP_VERSION = "v1"
@@ -24,12 +25,23 @@ APP_DESCRIPTION = (
 )
 
 
+def build_digest_scheduler() -> DigestScheduler:
+    return DigestScheduler()
+
+
 @asynccontextmanager
-async def lifespan(_: FastAPI):
+async def lifespan(app: FastAPI):
     logger = configure_logging()
     initialize_database()
     logger.info("データベースを初期化しました", extra={"run_id": "-"})
-    yield
+    digest_scheduler = build_digest_scheduler()
+    digest_scheduler.start()
+    app.state.digest_scheduler = digest_scheduler
+
+    try:
+        yield
+    finally:
+        digest_scheduler.shutdown()
 
 
 app = FastAPI(
