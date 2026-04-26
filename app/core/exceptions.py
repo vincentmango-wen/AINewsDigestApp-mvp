@@ -22,6 +22,13 @@ class ConfigurationError(AppError):
     status_code = 400
 
 
+class ValidationError(AppError):
+    """Raised when API input validation fails."""
+
+    error_code = "VALIDATION_ERROR"
+    status_code = 400
+
+
 class DatabaseError(AppError):
     """Raised when database access fails."""
 

@@ -196,6 +196,38 @@ def test_run_digest_returns_500_for_processing_error() -> None:
     app.dependency_overrides.clear()
 
 
+def test_run_digest_returns_400_for_request_validation_error() -> None:
+    stub_service = StubDigestService(result=build_success_result())
+    app.dependency_overrides[get_digest_service] = lambda: stub_service
+    client = TestClient(app)
+
+    response = client.post("/api/v1/jobs/digest/run", json=[])
+
+    assert response.status_code == 400
+    assert response.json() == {
+        "success": False,
+        "error_code": "VALIDATION_ERROR",
+        "message": "入力値が不正です",
+    }
+    app.dependency_overrides.clear()
+
+
+def test_run_digest_returns_500_for_unexpected_error() -> None:
+    stub_service = StubDigestService(error=RuntimeError("unexpected"))
+    app.dependency_overrides[get_digest_service] = lambda: stub_service
+    client = TestClient(app, raise_server_exceptions=False)
+
+    response = client.post("/api/v1/jobs/digest/run")
+
+    assert response.status_code == 500
+    assert response.json() == {
+        "success": False,
+        "error_code": "INTERNAL_SERVER_ERROR",
+        "message": "サーバー内部エラーが発生しました",
+    }
+    app.dependency_overrides.clear()
+
+
 def test_get_latest_digest_run_returns_success_response() -> None:
     stub_service = StubRunHistoryService(latest_run=build_digest_run())
     app.dependency_overrides[get_run_history_service] = lambda: stub_service
