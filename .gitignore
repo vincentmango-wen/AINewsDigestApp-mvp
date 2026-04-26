@@ -9,4 +9,5 @@ __pycache__/
 
 # Runtime artifacts
 logs/*.log
+logs/*.log.*
 data/*.db
