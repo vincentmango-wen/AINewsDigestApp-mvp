@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from apscheduler.triggers.cron import CronTrigger
+import pytest
 
 from app.schedulers.digest_scheduler import DAILY_DIGEST_JOB_ID, DigestScheduler
 
@@ -41,3 +42,26 @@ def test_digest_scheduler_does_not_duplicate_registered_job() -> None:
     jobs = scheduler.get_jobs()
 
     assert len(jobs) == 1
+
+
+def test_digest_scheduler_runs_digest_job_with_scheduler_trigger() -> None:
+    calls: list[str] = []
+
+    def run_digest_job() -> None:
+        calls.append("called")
+
+    scheduler = DigestScheduler(run_digest_job=run_digest_job)
+
+    scheduler._run_scheduled_digest()
+
+    assert calls == ["called"]
+
+
+def test_digest_scheduler_reraises_digest_job_errors() -> None:
+    def run_digest_job() -> None:
+        raise RuntimeError("boom")
+
+    scheduler = DigestScheduler(run_digest_job=run_digest_job)
+
+    with pytest.raises(RuntimeError, match="boom"):
+        scheduler._run_scheduled_digest()

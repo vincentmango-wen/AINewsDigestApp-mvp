@@ -8,9 +8,9 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
-from app.api.digest import router as digest_router
-from app.core.config import get_settings
+from app.api.digest import build_digest_service, router as digest_router
 from app.api.health import router as health_router
+from app.core.config import Settings, get_settings
 from app.core.exceptions import AppError
 from app.core.logging import configure_logging
 from app.db.connection import initialize_database
@@ -31,7 +31,13 @@ def build_digest_scheduler() -> DigestScheduler:
     return DigestScheduler(
         schedule_hour=settings.schedule_hour,
         schedule_minute=settings.schedule_minute,
+        run_digest_job=lambda: run_scheduled_digest(settings),
     )
+
+
+def run_scheduled_digest(settings: Settings) -> None:
+    digest_service = build_digest_service(settings)
+    digest_service.run("scheduler")
 
 
 @asynccontextmanager

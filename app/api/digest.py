@@ -27,7 +27,7 @@ def get_run_history_service() -> RunHistoryService:
     return RunHistoryService(DigestRunRepository())
 
 
-def get_digest_service(settings: Settings = Depends(get_settings)) -> DigestService:
+def build_digest_service(settings: Settings) -> DigestService:
     article_repository = ArticleRepository()
 
     return DigestService(
@@ -42,6 +42,10 @@ def get_digest_service(settings: Settings = Depends(get_settings)) -> DigestServ
         mail_service=MailService(settings=settings),
         run_history_service=RunHistoryService(DigestRunRepository()),
     )
+
+
+def get_digest_service(settings: Settings = Depends(get_settings)) -> DigestService:
+    return build_digest_service(settings)
 @router.post("/jobs/digest/run", response_model=ApiSuccessResponse[DigestRunData])
 def run_digest_job(
     payload: dict[str, Any] | None = Body(default=None),
