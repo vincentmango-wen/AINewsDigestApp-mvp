@@ -5,6 +5,7 @@ from __future__ import annotations
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from app.api.digest import router as digest_router
@@ -35,5 +36,27 @@ async def handle_app_error(_: Request, error: AppError) -> JSONResponse:
         content=ApiErrorResponse(
             error_code=error.error_code,
             message=error.message,
+        ).model_dump(),
+    )
+
+
+@app.exception_handler(RequestValidationError)
+async def handle_request_validation_error(_: Request, __: RequestValidationError) -> JSONResponse:
+    return JSONResponse(
+        status_code=400,
+        content=ApiErrorResponse(
+            error_code="VALIDATION_ERROR",
+            message="入力値が不正です",
+        ).model_dump(),
+    )
+
+
+@app.exception_handler(Exception)
+async def handle_unexpected_error(_: Request, __: Exception) -> JSONResponse:
+    return JSONResponse(
+        status_code=500,
+        content=ApiErrorResponse(
+            error_code="INTERNAL_SERVER_ERROR",
+            message="サーバー内部エラーが発生しました",
         ).model_dump(),
     )
