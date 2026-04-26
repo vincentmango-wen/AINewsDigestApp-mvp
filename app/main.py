@@ -15,6 +15,14 @@ from app.core.logging import configure_logging
 from app.db.connection import initialize_database
 from app.schemas.api import ApiErrorResponse
 
+APP_TITLE = "FocusDigest"
+APP_VERSION = "v1"
+APP_DESCRIPTION = (
+    "FocusDigest MVP API. "
+    "ローカル検証用途として、ヘルスチェック、ダイジェスト手動実行、"
+    "最新実行結果取得を提供します。"
+)
+
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
@@ -24,7 +32,12 @@ async def lifespan(_: FastAPI):
     yield
 
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(
+    title=APP_TITLE,
+    version=APP_VERSION,
+    description=APP_DESCRIPTION,
+    lifespan=lifespan,
+)
 app.include_router(health_router)
 app.include_router(digest_router)
 
