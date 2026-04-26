@@ -52,12 +52,20 @@ class RunHistoryService:
             error_message=None,
         )
 
-    def fail_run(self, run_id: int, error_message: str) -> DigestRun:
+    def fail_run(
+        self,
+        run_id: int,
+        error_message: str,
+        *,
+        fetched_count: int = 0,
+        selected_count: int = 0,
+        summarized_count: int = 0,
+    ) -> DigestRun:
         return self._digest_run_repository.update_result(
             run_id,
-            fetched_count=0,
-            selected_count=0,
-            summarized_count=0,
+            fetched_count=fetched_count,
+            selected_count=selected_count,
+            summarized_count=summarized_count,
             email_status="failed",
             error_message=error_message,
         )

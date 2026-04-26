@@ -110,18 +110,24 @@ def test_finish_run_updates_counts_and_email_status() -> None:
     assert run.finished_at == "2026-04-26T09:05:00Z"
 
 
-def test_fail_run_marks_run_as_failed_with_error_message() -> None:
+def test_fail_run_marks_run_as_failed_with_error_message_and_counts() -> None:
     repository = DummyDigestRunRepository()
     service = RunHistoryService(repository)
 
-    run = service.fail_run(1, "ニュース取得に失敗しました")
+    run = service.fail_run(
+        1,
+        "ニュース取得に失敗しました",
+        fetched_count=3,
+        selected_count=2,
+        summarized_count=1,
+    )
 
     assert repository.updated_calls == [
         {
             "run_id": 1,
-            "fetched_count": 0,
-            "selected_count": 0,
-            "summarized_count": 0,
+            "fetched_count": 3,
+            "selected_count": 2,
+            "summarized_count": 1,
             "email_status": "failed",
             "error_message": "ニュース取得に失敗しました",
         }
