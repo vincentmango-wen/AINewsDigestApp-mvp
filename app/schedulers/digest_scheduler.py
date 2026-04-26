@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Callable
+
 from apscheduler.job import Job
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
@@ -12,11 +14,18 @@ DAILY_DIGEST_JOB_ID = "daily_digest"
 
 
 class DigestScheduler:
-    def __init__(self, *, schedule_hour: int = 8, schedule_minute: int = 0) -> None:
+    def __init__(
+        self,
+        *,
+        schedule_hour: int = 8,
+        schedule_minute: int = 0,
+        run_digest_job: Callable[[], None] | None = None,
+    ) -> None:
         self._logger = get_logger("scheduler")
         self._scheduler = BackgroundScheduler()
         self._schedule_hour = schedule_hour
         self._schedule_minute = schedule_minute
+        self._run_digest_job = run_digest_job or (lambda: None)
 
     @property
     def running(self) -> bool:
@@ -59,4 +68,14 @@ class DigestScheduler:
         )
 
     def _run_scheduled_digest(self) -> None:
-        """Placeholder for T503, which wires the digest execution."""
+        self._logger.info("スケジューラ起点のダイジェスト処理を開始します", extra={"run_id": "-"})
+        try:
+            self._run_digest_job()
+        except Exception:
+            self._logger.exception(
+                "スケジューラ起点のダイジェスト処理に失敗しました",
+                extra={"run_id": "-"},
+            )
+            raise
+
+        self._logger.info("スケジューラ起点のダイジェスト処理が完了しました", extra={"run_id": "-"})
