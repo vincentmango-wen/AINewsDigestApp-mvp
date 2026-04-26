@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 from dataclasses import replace
+from datetime import date
 
 import pytest
 
 from app.core.config import Settings
-from app.core.exceptions import ConfigurationError
+from app.core.exceptions import ConfigurationError, MailBuildError
+from app.schemas.article import Article
 from app.services.mail_service import MailService
 
 
@@ -32,6 +34,62 @@ def build_settings() -> Settings:
         db_path=__import__("pathlib").Path("/tmp/app.db"),
         log_path=__import__("pathlib").Path("/tmp/app.log"),
     )
+
+
+def build_article(
+    article_id: int,
+    *,
+    title: str = "記事タイトル",
+    summary: str | None = "要約本文です。",
+    url: str = "https://example.com/articles/1",
+) -> Article:
+    return Article(
+        article_id=article_id,
+        url=url,
+        title=title,
+        description="説明文",
+        source_name="Example News",
+        published_at="2026-04-26T09:00:00Z",
+        category="AI",
+        summary=summary,
+        summary_status="success",
+        fetched_at="2026-04-26T09:00:00Z",
+        last_sent_run_id=None,
+        created_at="2026-04-26T09:00:00Z",
+        updated_at="2026-04-26T09:00:00Z",
+    )
+
+
+def test_build_message_returns_subject_and_body() -> None:
+    service = MailService(settings=build_settings())
+
+    message = service.build_message(
+        [build_article(1), build_article(2, title="記事2", summary="要約2です。", url="https://example.com/articles/2")],
+        target_date=date(2026, 4, 26),
+    )
+
+    assert message is not None
+    subject, body = message
+    assert subject == "AIニュースダイジェスト 2026-04-26"
+    assert "タイトル: 記事タイトル" in body
+    assert "要約: 要約本文です。" in body
+    assert "URL: https://example.com/articles/1" in body
+    assert "タイトル: 記事2" in body
+
+
+def test_build_message_returns_none_when_articles_are_empty() -> None:
+    service = MailService(settings=build_settings())
+
+    message = service.build_message([])
+
+    assert message is None
+
+
+def test_build_message_raises_when_required_article_data_is_missing() -> None:
+    service = MailService(settings=build_settings())
+
+    with pytest.raises(MailBuildError, match="記事データが不足"):
+        service.build_message([build_article(1, url=" ")], target_date=date(2026, 4, 26))
 
 
 def test_send_mail_raises_configuration_error_when_smtp_host_is_missing() -> None:
