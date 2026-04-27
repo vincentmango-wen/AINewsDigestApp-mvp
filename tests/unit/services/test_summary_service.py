@@ -128,3 +128,16 @@ def test_summarize_articles_skips_articles_with_blank_title() -> None:
     assert results == []
     assert openai_client.calls == []
     assert repository.updates == []
+
+
+def test_summarize_articles_marks_failed_when_summary_is_blank() -> None:
+    article = build_article(1)
+    repository = DummyArticleRepository({1: article})
+    openai_client = DummyOpenAIClient({1: "   "})
+    service = SummaryService(openai_client=openai_client, article_repository=repository)
+
+    results = service.summarize_articles(1, [article])
+
+    assert results == []
+    assert openai_client.calls == [("記事タイトル", "説明文")]
+    assert repository.updates == [(1, None, "failed")]

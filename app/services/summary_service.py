@@ -45,6 +45,8 @@ class SummaryService:
 
             try:
                 summary = self._openai_client.summarize(article.title, article.description)
+                if summary.strip() == "":
+                    raise ExternalApiError("要約結果が空です")
                 updated_article = self._article_repository.update_summary(
                     article.article_id,
                     summary=summary,
