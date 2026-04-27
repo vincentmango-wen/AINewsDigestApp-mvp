@@ -87,3 +87,48 @@ def test_fetch_latest_articles_filters_invalid_published_at() -> None:
 
     assert len(results) == 1
     assert results[0].published_at == "2026-04-25T09:00:00Z"
+
+
+def test_fetch_latest_articles_filters_blank_required_fields() -> None:
+    client = DummyNewsClient(
+        [
+            ArticleFetchResult(
+                title="  ",
+                description="タイトルが空白のみ",
+                url="https://example.com/articles/1",
+                published_at="2026-04-25T09:00:00Z",
+                source_name="Example News",
+                category="AI",
+            ),
+            ArticleFetchResult(
+                title="URL空白",
+                description="URLが空白のみ",
+                url="   ",
+                published_at="2026-04-25T10:00:00Z",
+                source_name="Example News",
+                category="AI",
+            ),
+            ArticleFetchResult(
+                title="公開日時空白",
+                description="published_at が空白のみ",
+                url="https://example.com/articles/3",
+                published_at="   ",
+                source_name="Example News",
+                category="AI",
+            ),
+            ArticleFetchResult(
+                title="正常記事",
+                description="正常データ",
+                url="https://example.com/articles/4",
+                published_at="2026-04-25T11:00:00Z",
+                source_name="Example News",
+                category="AI",
+            ),
+        ]
+    )
+    service = NewsService(client)
+
+    results = service.fetch_latest_articles("AI", 20)
+
+    assert len(results) == 1
+    assert results[0].url == "https://example.com/articles/4"

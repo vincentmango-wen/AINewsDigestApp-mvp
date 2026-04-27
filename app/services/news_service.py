@@ -22,9 +22,17 @@ class NewsService:
         return [article for article in articles if self._is_valid_article(article)]
 
     def _is_valid_article(self, article: ArticleFetchResult) -> bool:
-        if article.title is None or article.url is None or article.published_at is None:
+        if not self._has_text(article.title):
+            return False
+        if not self._has_text(article.url):
+            return False
+        if not self._has_text(article.published_at):
             return False
         return self._is_valid_iso8601(article.published_at)
+
+    @staticmethod
+    def _has_text(value: str | None) -> bool:
+        return value is not None and value.strip() != ""
 
     @staticmethod
     def _is_valid_iso8601(value: str) -> bool:
