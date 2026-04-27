@@ -108,6 +108,20 @@ def test_send_mail_raises_configuration_error_when_smtp_password_is_missing() ->
         service.send_mail("件名", "本文")
 
 
+def test_send_mail_raises_mail_build_error_when_body_is_blank() -> None:
+    service = MailService(settings=build_settings())
+
+    with pytest.raises(MailBuildError, match="メール本文の生成に失敗しました"):
+        service.send_mail("件名", "   ")
+
+
+def test_send_mail_raises_mail_build_error_when_subject_is_blank() -> None:
+    service = MailService(settings=build_settings())
+
+    with pytest.raises(MailBuildError, match="メール件名の生成に失敗しました"):
+        service.send_mail("   ", "本文")
+
+
 def test_send_mail_uses_smtp_client_when_settings_are_complete() -> None:
     created_clients: list[DummySmtpClient] = []
 

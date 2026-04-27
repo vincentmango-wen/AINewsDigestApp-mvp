@@ -54,6 +54,10 @@ class MailService:
 
     def send_mail(self, subject: str, body: str) -> None:
         self._validate_smtp_settings()
+        if subject.strip() == "":
+            raise MailBuildError("メール件名の生成に失敗しました")
+        if body.strip() == "":
+            raise MailBuildError("メール本文の生成に失敗しました")
         smtp_client = self._smtp_client_factory(
             host=self._settings.smtp_host,
             port=self._settings.smtp_port,
