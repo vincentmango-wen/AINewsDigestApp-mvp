@@ -113,6 +113,22 @@ def test_run_digest_accepts_empty_json_body() -> None:
     app.dependency_overrides.clear()
 
 
+def test_run_digest_accepts_empty_request_body() -> None:
+    stub_service = StubDigestService(result=build_success_result())
+    app.dependency_overrides[get_digest_service] = lambda: stub_service
+    client = TestClient(app)
+
+    response = client.post(
+        "/api/v1/jobs/digest/run",
+        content=b"",
+        headers={"content-type": "application/json"},
+    )
+
+    assert response.status_code == 200
+    assert stub_service.calls == ["manual"]
+    app.dependency_overrides.clear()
+
+
 def test_run_digest_rejects_non_empty_json_body() -> None:
     stub_service = StubDigestService(result=build_success_result())
     app.dependency_overrides[get_digest_service] = lambda: stub_service
