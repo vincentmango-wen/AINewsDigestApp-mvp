@@ -1,8 +1,13 @@
 from __future__ import annotations
 
+from pathlib import Path
+
+from apscheduler.triggers.cron import CronTrigger
 from fastapi.testclient import TestClient
 
 from app.main import app
+from app.core.config import Settings
+from app.schedulers.digest_scheduler import DAILY_DIGEST_JOB_ID
 
 
 class StubLogger:
@@ -40,6 +45,38 @@ def test_lifespan_starts_and_stops_digest_scheduler(monkeypatch) -> None:
         assert stub_scheduler.stopped is False
 
     assert stub_scheduler.stopped is True
+
+
+def test_build_digest_scheduler_registers_one_job_with_configured_schedule(monkeypatch) -> None:
+    settings = Settings(
+        category="AI",
+        THE_NEWS_API_TOKEN="token",
+        openai_api_key="openai-key",
+        smtp_host="smtp.gmail.com",
+        smtp_port=587,
+        smtp_username="user@example.com",
+        smtp_password="app-password",
+        mail_from_address="user@example.com",
+        mail_to_address="to@example.com",
+        db_path=Path("/tmp/app.db"),
+        log_path=Path("/tmp/app.log"),
+        schedule_hour=9,
+        schedule_minute=30,
+    )
+
+    monkeypatch.setattr("app.main.get_settings", lambda: settings)
+
+    from app.main import build_digest_scheduler
+
+    scheduler = build_digest_scheduler()
+    scheduler.register_jobs()
+    jobs = scheduler.get_jobs()
+
+    assert len(jobs) == 1
+    assert jobs[0].id == DAILY_DIGEST_JOB_ID
+    assert isinstance(jobs[0].trigger, CronTrigger)
+    assert str(jobs[0].trigger) == "cron[hour='9', minute='30']"
+    scheduler.shutdown()
 
 
 class StubDigestService:
