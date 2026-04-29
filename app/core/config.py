@@ -117,7 +117,7 @@ def _resolve_path(raw_value: str | None, default_path: Path) -> Path:
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
-    load_dotenv()
+    load_dotenv(BASE_DIR / ".env", override=True)
 
     category = _normalize_category(_require_env("CATEGORY"))
     THE_NEWS_API_TOKEN = _require_any_env("THE_NEWS_API_TOKEN", "NEWS_API_KEY")
