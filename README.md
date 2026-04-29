@@ -82,34 +82,11 @@ requirements-dev.txt
 補足:
 
 - 設計資料ディレクトリ名は `documents` ではなく `docoments` です
-- 現時点ではコードの多くが雛形段階で、設計書が先行しています
-
-## 現状ステータス
-
-2026-04-18 時点では、リポジトリは主に設計資料と Python パッケージ雛形で構成されています。
-
-実装済み:
-
-- ディレクトリ構成
-- 依存ライブラリ定義
-- 各モジュールのプレースホルダファイル
-- 設計書、要件定義、API 仕様、DB 設計、実装手順書
-
-未実装または未着手:
-
-- FastAPI エンドポイント本体
-- 設定読み込み
-- DB 初期化
-- TheNewsAPI / OpenAI / SMTP クライアント
-- 業務サービス
-- スケジューラ実処理
-- テストコード
-- Dockerfile
-- `.env.example`
+- 実行手順の詳細は [起動手順書.md](./起動手順書.md) にまとめています
 
 ## 必要な環境変数
 
-設計資料上、以下の設定を利用する前提です。
+以下の設定を利用します。
 
 ```env
 CATEGORY=AI
@@ -119,6 +96,7 @@ SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USERNAME=your_gmail_address
 SMTP_PASSWORD=your_app_password
+MAIL_TO_ADDRESS=recipient@example.com
 ```
 
 補足:
@@ -126,7 +104,8 @@ SMTP_PASSWORD=your_app_password
 - `CATEGORY` は 2 文字以上 50 文字以内を想定
 - SMTP は Gmail 前提で設計されています
 - 互換性のため `NEWS_API_KEY` でも読み込めますが、新規設定は `THE_NEWS_API_TOKEN` を推奨します
-- 現在は `.env.example` が未作成です
+- `MAIL_FROM_ADDRESS` は未指定時に `SMTP_USERNAME` が使われます
+- `DB_PATH`、`LOG_PATH`、`FETCH_LIMIT`、`SELECTION_LIMIT`、`SCHEDULE_HOUR`、`SCHEDULE_MINUTE` は任意です
 
 ## セットアップ
 
@@ -150,18 +129,31 @@ pip install -r requirements-dev.txt
 
 ## 実行方法
 
-アプリ本体はまだ未実装のため、現時点ではそのまま起動しても API やバッチ処理は動作しません。  
-今後の想定実行方法は以下です。
+ローカル起動:
 
 ```bash
-uvicorn app.main:app --reload
+uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
-想定される確認ポイント:
+Docker 起動:
+
+```bash
+docker build -t focusdigest:local .
+docker run --rm \
+  --env-file .env \
+  -p 8000:8000 \
+  -v "$(pwd)/data:/app/data" \
+  -v "$(pwd)/logs:/app/logs" \
+  focusdigest:local
+```
+
+主要な確認ポイント:
 
 - `GET /api/v1/health`
 - `POST /api/v1/jobs/digest/run`
 - `GET /api/v1/jobs/digest/runs/latest`
+
+手動実行 API はボディなし、空ボディ、または空 JSON で呼び出せます。
 
 ## データ保存とログ
 
@@ -187,17 +179,3 @@ Docker 利用時は、設計上は以下のようなホストマウントを想�
 - `docoments/API仕様書.md`
 - `docoments/データベース設計書.md`
 - `docoments/実装手順書.md`
-
-## 次に着手すべき項目
-
-優先度順の候補:
-
-1. `app/core/config.py` の設定管理実装
-2. `app/db/connection.py` と `app/db/schema.sql` の DB 初期化実装
-3. 外部 API / SMTP クライアント実装
-4. サービス層実装
-5. FastAPI エンドポイント実装
-6. APScheduler 連携
-7. テスト追加
-8. Dockerfile と `.env.example` 追加
-
