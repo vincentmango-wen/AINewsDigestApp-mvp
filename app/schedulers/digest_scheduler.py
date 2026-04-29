@@ -17,7 +17,7 @@ class DigestScheduler:
     def __init__(
         self,
         *,
-        schedule_hour: int = 8,
+        schedule_hour: int = 13,
         schedule_minute: int = 0,
         run_digest_job: Callable[[], None] | None = None,
     ) -> None:
