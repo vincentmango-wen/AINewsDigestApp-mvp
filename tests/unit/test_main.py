@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 
 from app.main import app
 from app.core.config import Settings
-from app.schedulers.digest_scheduler import DAILY_DIGEST_JOB_ID
+from app.schedulers.digest_scheduler import DAILY_DIGEST_JOB_ID, SCHEDULER_TIMEZONE
 
 
 class StubLogger:
@@ -76,6 +76,7 @@ def test_build_digest_scheduler_registers_one_job_with_configured_schedule(monke
     assert jobs[0].id == DAILY_DIGEST_JOB_ID
     assert isinstance(jobs[0].trigger, CronTrigger)
     assert str(jobs[0].trigger) == "cron[hour='9', minute='30']"
+    assert jobs[0].trigger.timezone == SCHEDULER_TIMEZONE
     scheduler.shutdown()
 
 
