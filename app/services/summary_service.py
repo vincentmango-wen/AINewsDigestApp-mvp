@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Protocol
 
 from app.core.exceptions import ExternalApiError
+from app.core.logging import get_logger
 from app.schemas.article import Article
 
 
@@ -31,12 +32,11 @@ class SummaryService:
         openai_client: SummaryGenerator,
         article_repository: SummaryRepository,
     ) -> None:
+        self._logger = get_logger("summary")
         self._openai_client = openai_client
         self._article_repository = article_repository
 
     def summarize_articles(self, run_id: int, articles: list[Article]) -> list[Article]:
-        del run_id
-
         summarized_articles: list[Article] = []
 
         for article in articles:
@@ -52,7 +52,14 @@ class SummaryService:
                     summary=summary,
                     summary_status="success",
                 )
-            except ExternalApiError:
+            except ExternalApiError as exc:
+                self._logger.warning(
+                    "記事要約に失敗しました: article_id=%s title=%s reason=%s",
+                    article.article_id,
+                    article.title,
+                    exc,
+                    extra={"run_id": str(run_id)},
+                )
                 self._article_repository.update_summary(
                     article.article_id,
                     summary=None,
