@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from typing import Callable
+from zoneinfo import ZoneInfo
 
 from apscheduler.job import Job
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -11,6 +12,7 @@ from apscheduler.triggers.cron import CronTrigger
 from app.core.logging import get_logger
 
 DAILY_DIGEST_JOB_ID = "daily_digest"
+SCHEDULER_TIMEZONE = ZoneInfo("Asia/Tokyo")
 
 
 class DigestScheduler:
@@ -22,7 +24,7 @@ class DigestScheduler:
         run_digest_job: Callable[[], None] | None = None,
     ) -> None:
         self._logger = get_logger("scheduler")
-        self._scheduler = BackgroundScheduler()
+        self._scheduler = BackgroundScheduler(timezone=SCHEDULER_TIMEZONE)
         self._schedule_hour = schedule_hour
         self._schedule_minute = schedule_minute
         self._run_digest_job = run_digest_job or (lambda: None)
@@ -54,7 +56,11 @@ class DigestScheduler:
         if self._scheduler.get_job(DAILY_DIGEST_JOB_ID) is None:
             self._scheduler.add_job(
                 self._run_scheduled_digest,
-                trigger=CronTrigger(hour=self._schedule_hour, minute=self._schedule_minute),
+                trigger=CronTrigger(
+                    hour=self._schedule_hour,
+                    minute=self._schedule_minute,
+                    timezone=SCHEDULER_TIMEZONE,
+                ),
                 id=DAILY_DIGEST_JOB_ID,
                 replace_existing=False,
             )
