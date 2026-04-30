@@ -18,7 +18,7 @@ DEFAULT_DB_PATH: Final = BASE_DIR / "data" / "app.db"
 DEFAULT_LOG_PATH: Final = BASE_DIR / "logs" / "app.log"
 DEFAULT_FETCH_LIMIT: Final = 20
 DEFAULT_SELECTION_LIMIT: Final = 5
-DEFAULT_SCHEDULE_HOUR: Final = 13
+DEFAULT_SCHEDULE_HOUR: Final = 16
 DEFAULT_SCHEDULE_MINUTE: Final = 0
 CATEGORY_PATTERN: Final = re.compile(
     r"^[A-Za-z0-9_\- \u3040-\u309F\u30A0-\u30FF\u3400-\u4DBF\u4E00-\u9FFF々ー]+$"
