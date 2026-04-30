@@ -17,7 +17,7 @@ FocusDigest は、指定した分野のニュースを取得し、AI で要約�
 1. 指定カテゴリのニュースを取得する
 2. 取得記事を SQLite に保存する
 3. 新しい記事から上位 5 件を選定する
-4. OpenAI API で日本語要約を生成する
+4. OpenAI API で各記事を日本語 400〜500 文字程度に要約する
 5. 要約結果を 1 通のメールにまとめて送信する
 6. 毎日 08:00 に定期実行する
 
@@ -103,6 +103,7 @@ MAIL_TO_ADDRESS=recipient@example.com
 
 - `CATEGORY` は 2 文字以上 50 文字以内を想定
 - SMTP は Gmail 前提で設計されています
+- ニュース取得は英語、日本語、繁体字中国語圏（`locale=tw,hk`）を対象にしています
 - 互換性のため `NEWS_API_KEY` でも読み込めますが、新規設定は `THE_NEWS_API_TOKEN` を推奨します
 - `MAIL_FROM_ADDRESS` は未指定時に `SMTP_USERNAME` が使われます
 - `DB_PATH`、`LOG_PATH`、`FETCH_LIMIT`、`SELECTION_LIMIT`、`SCHEDULE_HOUR`、`SCHEDULE_MINUTE` は任意です

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import logging
+
 from app.core.exceptions import ExternalApiError
 from app.schemas.article import Article
 from app.services.summary_service import SummaryService
@@ -141,3 +143,18 @@ def test_summarize_articles_marks_failed_when_summary_is_blank() -> None:
     assert results == []
     assert openai_client.calls == [("記事タイトル", "説明文")]
     assert repository.updates == [(1, None, "failed")]
+
+
+def test_summarize_articles_logs_reason_when_summary_generation_fails(caplog) -> None:
+    article = build_article(1)
+    repository = DummyArticleRepository({1: article})
+    openai_client = DummyOpenAIClient({1: ExternalApiError("OpenAI failed")})
+    service = SummaryService(openai_client=openai_client, article_repository=repository)
+
+    with caplog.at_level(logging.WARNING, logger="focusdigest.summary"):
+        results = service.summarize_articles(99, [article])
+
+    assert results == []
+    assert "記事要約に失敗しました" in caplog.text
+    assert "article_id=1" in caplog.text
+    assert "OpenAI failed" in caplog.text

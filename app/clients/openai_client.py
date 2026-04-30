@@ -10,10 +10,12 @@ from app.core.exceptions import ExternalApiError
 
 DEFAULT_OPENAI_MODEL = "gpt-5-mini"
 DEFAULT_TIMEOUT_SECONDS = 20.0
-DEFAULT_MAX_OUTPUT_TOKENS = 220
+DEFAULT_MAX_OUTPUT_TOKENS = 768
+DEFAULT_REASONING = {"effort": "low"}
 SUMMARY_INSTRUCTIONS = (
     "あなたはニュース要約アシスタントです。"
-    "入力された記事タイトルと説明文をもとに、自然な日本語で2文から3文に要約してください。"
+    "入力された記事タイトルと説明文をもとに、自然な日本語で400文字から500文字の要約を作成してください。"
+    "記事の背景、要点、影響が分かるように、簡潔だが情報量を保ってください。"
     "誇張や推測は避け、本文にない情報は補わないでください。"
 )
 
@@ -41,6 +43,7 @@ class OpenAiClient:
                 instructions=SUMMARY_INSTRUCTIONS,
                 input=prompt,
                 max_output_tokens=self._max_output_tokens,
+                reasoning=DEFAULT_REASONING,
             )
         except APITimeoutError as exc:
             raise ExternalApiError("OpenAI API の呼び出しがタイムアウトしました") from exc

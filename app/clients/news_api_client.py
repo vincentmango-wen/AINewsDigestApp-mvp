@@ -14,6 +14,11 @@ from app.schemas.article import ArticleFetchResult
 NEWS_API_BASE_URL = "https://api.thenewsapi.com/v1/news/all"
 DEFAULT_TIMEOUT_SECONDS = 10.0
 FREE_PLAN_MAX_PAGE_SIZE = 3
+LANGUAGE_QUERY_PROFILES: tuple[dict[str, str], ...] = (
+    {"language": "en"},
+    {"language": "ja"},
+    {"locale": "tw,hk"},
+)
 
 
 class NewsApiClient:
@@ -33,31 +38,49 @@ class NewsApiClient:
         self._http_client = http_client
 
     def fetch_news(self, category: str, page_size: int) -> list[ArticleFetchResult]:
-        response_payload = self._request(category=category, page_size=page_size)
-        articles = response_payload.get("data")
-        if not isinstance(articles, Sequence) or isinstance(articles, (str, bytes)):
-            raise ExternalApiError("TheNewsAPI のレスポンス形式が不正です")
+        fetched_articles: list[ArticleFetchResult] = []
+        seen_urls: set[str] = set()
 
-        return [
-            ArticleFetchResult(
-                title=self._read_text(article, "title"),
-                description=self._read_description(article),
-                url=self._read_text(article, "url"),
-                published_at=self._read_text(article, "published_at"),
-                source_name=self._read_source_name(article),
-                category=category,
-            )
-            for article in articles
-            if isinstance(article, dict)
-        ]
+        for profile in LANGUAGE_QUERY_PROFILES:
+            response_payload = self._request(category=category, page_size=page_size, query_profile=profile)
+            articles = response_payload.get("data")
+            if not isinstance(articles, Sequence) or isinstance(articles, (str, bytes)):
+                raise ExternalApiError("TheNewsAPI のレスポンス形式が不正です")
 
-    def _request(self, *, category: str, page_size: int) -> dict[str, Any]:
+            for article in articles:
+                if not isinstance(article, dict):
+                    continue
+
+                normalized_article = ArticleFetchResult(
+                    title=self._read_text(article, "title"),
+                    description=self._read_description(article),
+                    url=self._read_text(article, "url"),
+                    published_at=self._read_text(article, "published_at"),
+                    source_name=self._read_source_name(article),
+                    category=category,
+                )
+                if normalized_article.url is None or normalized_article.url in seen_urls:
+                    continue
+
+                seen_urls.add(normalized_article.url)
+                fetched_articles.append(normalized_article)
+
+        return fetched_articles[:page_size]
+
+    def _request(
+        self,
+        *,
+        category: str,
+        page_size: int,
+        query_profile: dict[str, str],
+    ) -> dict[str, Any]:
         effective_page_size = min(page_size, self._max_page_size)
         params = {
             "api_token": self._api_key,
             "search": category,
             "limit": effective_page_size,
         }
+        params.update(query_profile)
 
         if self._http_client is not None:
             return self._send_request(self._http_client, params=params)

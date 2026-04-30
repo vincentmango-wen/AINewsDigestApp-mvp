@@ -6,7 +6,7 @@ import httpx
 import pytest
 from openai import APITimeoutError
 
-from app.clients.openai_client import OpenAiClient
+from app.clients.openai_client import DEFAULT_REASONING, OpenAiClient
 from app.core.exceptions import ExternalApiError
 
 
@@ -36,6 +36,9 @@ def test_summarize_returns_output_text() -> None:
 
     assert result == "要約1。要約2。"
     assert responses.calls[0]["model"] == "gpt-5-mini"
+    assert responses.calls[0]["max_output_tokens"] == 768
+    assert responses.calls[0]["reasoning"] == DEFAULT_REASONING
+    assert "400文字から500文字" in str(responses.calls[0]["instructions"])
     assert "タイトル: AI市場が拡大" in str(responses.calls[0]["input"])
     assert "説明文: 生成AIの導入が企業で進んでいる。" in str(responses.calls[0]["input"])
 
